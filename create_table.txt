@@ -1,0 +1,63 @@
+-- Create ENUM for order status
+CREATE TYPE order_status AS ENUM ('PLACED', 'PROCESSING', 'SHIPPED', 'DELIVERED');
+
+-- Create Products table
+CREATE TABLE products (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price NUMERIC(10, 2) NOT NULL CHECK (price > 0)
+);
+
+-- Create Orders table
+CREATE TABLE orders (
+    id VARCHAR(36) PRIMARY KEY,
+    customer_name VARCHAR(255) NOT NULL,
+    total_amount NUMERIC(10, 2) NOT NULL,
+    status order_status NOT NULL DEFAULT 'PLACED'
+);
+
+-- Create Order Items table (Junction table)
+CREATE TABLE order_items (
+    id VARCHAR(36) PRIMARY KEY,
+    order_id VARCHAR(36) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id VARCHAR(36) NOT NULL REFERENCES products(id),
+    product_name VARCHAR(255) NOT NULL,
+    unit_price NUMERIC(10, 2) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    subtotal NUMERIC(10, 2) NOT NULL
+);
+
+
+
+# Insert records into tables
+
+-- 1. Insert 5 Products
+INSERT INTO products (id, name, price) VALUES
+('prod-1', 'Wireless Mouse', 29.99),
+('prod-2', 'Mechanical Keyboard', 89.99),
+('prod-3', '27-Inch 4K Monitor', 349.50),
+('prod-4', 'USB-C Cable (6ft)', 12.99),
+('prod-5', 'Noise-Canceling Headphones', 199.00);
+
+-- 2. Insert 5 Orders
+INSERT INTO orders (id, customer_name, total_amount, status) VALUES
+('order-1', 'Alice Smith', 149.97, 'PLACED'),
+('order-2', 'Bob Johnson', 349.50, 'PROCESSING'),
+('order-3', 'Charlie Davis', 25.98, 'SHIPPED'),
+('order-4', 'Diana Prince', 199.00, 'DELIVERED'),
+('order-5', 'Evan Wright', 288.99, 'PLACED');
+
+-- 3. Insert 5 Order Items (matching order details)
+INSERT INTO order_items (id, order_id, product_id, product_name, unit_price, quantity, subtotal) VALUES
+-- Order 1 items (Alice: 1 Keyboard + 2 Mice)
+('item-1', 'order-1', 'prod-2', 'Mechanical Keyboard', 89.99, 1, 89.99),
+('item-2', 'order-1', 'prod-1', 'Wireless Mouse', 29.99, 2, 59.98),
+
+-- Order 2 item (Bob: 1 Monitor)
+('item-3', 'order-2', 'prod-3', '27-Inch 4K Monitor', 349.50, 1, 349.50),
+
+-- Order 3 item (Charlie: 2 USB-C Cables)
+('item-4', 'order-3', 'prod-4', 'USB-C Cable (6ft)', 12.99, 2, 25.98),
+
+-- Order 4 item (Diana: 1 Headphones)
+('item-5', 'order-4', 'prod-5', 'Noise-Canceling Headphones', 199.00, 1, 199.00);
